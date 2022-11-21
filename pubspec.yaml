@@ -1,5 +1,5 @@
 name: simple_mutex
-description: A starting point for Dart libraries or applications.
+description: Simple Mutex providing a exclusive write lock and shared read-only locks.
 version: 1.0.0
 homepage: https://github.com/Cat-sushi/simple_mutex
 
