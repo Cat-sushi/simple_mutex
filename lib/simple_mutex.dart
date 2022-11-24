@@ -21,11 +21,11 @@ class Mutex {
   /// This is useful for a read/ write user of resouces which should not run with other users at the same time.
   Future<void> lock() async {
     while (!_exclusive.isCompleted) {
-      await Future.wait([_exclusive.future]);
+      await _exclusive.future;
     }
     _exclusive = Completer<void>();
     while (!_shared.isCompleted) {
-      await Future.wait([_shared.future]);
+      await _shared.future;
     }
   }
 
@@ -47,7 +47,7 @@ class Mutex {
   /// This is useful for read-only users of resources running asynchronously at the same time.
   Future<void> lockShared() async {
     while (!_exclusive.isCompleted) {
-      await Future.wait([_exclusive.future]);
+      await _exclusive.future;
     }
     if (_sharedCount == 0) {
       _shared = Completer<void>();
