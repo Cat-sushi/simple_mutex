@@ -39,7 +39,7 @@ class Mutex {
   }
 
   /// Critical section with the exclusive lock.
-  /// 
+  ///
   /// ## Usage
   /// ```dart
   /// await mutex.critical(() /* async */ {
@@ -88,7 +88,7 @@ class Mutex {
   }
 
   /// Critical section with a shared lock.
-  /// 
+  ///
   /// ## Usage
   /// ```dart
   /// await mutex.criticalShared(() /* async */ {
