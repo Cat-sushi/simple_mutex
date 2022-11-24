@@ -15,7 +15,7 @@ class Mutex {
   /// This is literally mutually exclusive with other users aqurering exclusive/ shared locks.
   ///
   /// 1. waits for the other existing users having requested for aquiring the exclusive lock at the call time to release it.
-  /// 2. makes the other users wait for aquiring exclusive/ shared locks.
+  /// 2. makes the other users wait for aquiring exclusive/ shared locks with some exception. see [unlock].
   /// 3. waits for all the existing users having aquired shared locks to release them.
   ///
   /// This is useful for a read/ write user of resouces which should not run with other users at the same time.
@@ -34,6 +34,10 @@ class Mutex {
   /// This will resume the first user having requested for aquiring the exclusive lock,
   /// or resume some users having requested for aquiring shared locks,
   /// dipending on calling order.
+  /// 
+  /// Having said that, if the code between [unlock] and next [lock] on the same
+  /// [Mutex] object is synchronous, the next [lock] will succeed synchronously,
+  /// so don't hesitate [unlock] just fater the critical section.
   void unlock() {
     _exclusive.complete();
   }
