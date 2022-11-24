@@ -184,6 +184,81 @@ void main() {
       ]);
     });
   });
+  group('Critical section tests', () {
+    test('test1', () async {
+      var results = [];
+
+      var mutex = Mutex();
+
+      var mutex1 = Mutex();
+      await mutex1.lock();
+
+      var mutex2 = Mutex();
+      await mutex2.lock();
+
+      var mutex3 = Mutex();
+      await mutex3.lock();
+
+      var future1 = mutex.criticalShared(
+          () async => results.add(await asyncFuncShared1(1, mutex1, results)));
+      var future2 = mutex.criticalShared(
+          () async => results.add(await asyncFuncShared1(2, mutex2, results)));
+      var future3 = mutex.critical(() async =>
+          results.add(await asyncFuncExclusive1(3, mutex3, results)));
+
+      await mySleep();
+
+      results.add('restarting 3');
+      mutex3.unlock();
+      results.add('restarting 2');
+      mutex2.unlock();
+      results.add('restarting 1');
+      mutex1.unlock();
+
+      await Future.wait<void>([future1, future2, future3]);
+
+      expect(results, [
+        'restarting 3',
+        'restarting 2',
+        'restarting 1',
+        '2 restarted.',
+        '2 unlocked shared',
+        2,
+        '1 restarted.',
+        '1 unlocked shared',
+        1,
+        '3 locked.',
+        '3 restarted.',
+        3
+      ]);
+    });
+    test('test2', () async {
+      var results = [];
+
+      var mutex = Mutex();
+
+      var future1 = mutex.criticalShared(
+          () async => results.add(await asyncFuncShared2(1, 4, results)));
+      var future2 = mutex.criticalShared(
+          () async => results.add(await asyncFuncShared2(2, 2, results)));
+      var future3 = mutex
+          .critical(() => results.add(syncFuncExclusive(3, 1, results)));
+
+      await Future.wait<void>([future1, future2, future3]);
+
+      expect(results, [
+        '1 sleeping 4',
+        '2 sleeping 2',
+        '2 awaik',
+        2,
+        '1 awaik',
+        1,
+        '3 sleeping 1',
+        '3 awaik',
+        3
+      ]);
+    });
+  });
 }
 
 Future<int> asyncFuncExclusive(
@@ -212,6 +287,36 @@ Future<int> asyncFuncShared(
   return me;
 }
 
+Future<int> asyncFuncExclusive1(int me, Mutex myMutex, List results) async {
+  results.add('$me locked.');
+  await myMutex.lock();
+  results.add('$me restarted.');
+  myMutex.unlock();
+  return me;
+}
+
+Future<int> asyncFuncShared1(int me, Mutex myMutex, List results) async {
+  await myMutex.lock();
+  results.add('$me restarted.');
+  myMutex.unlock();
+  results.add('$me unlocked shared');
+  return me;
+}
+
+int syncFuncExclusive(int me, int s, List results) {
+  results.add('$me sleeping $s');
+  sleep(Duration(seconds: s));
+  results.add('$me awaik');
+  return me;
+}
+
+Future<int> asyncFuncShared2(int me, int s, List results) async {
+  results.add('$me sleeping $s');
+  await Future<void>.delayed(Duration(seconds: s));
+  results.add('$me awaik');
+  return me;
+}
+
 Future<void> mySleep() async {
-  sleep(Duration(seconds: 1));
+  await Future<void>.delayed(Duration(seconds: 1));
 }

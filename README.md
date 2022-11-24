@@ -43,6 +43,8 @@ await mutex.lockShared();
 mutex.unlockShared();
 ```
 
+To avoid leaking lock in exceptional cases, [Mutex.critical] and [Mutex.criticalShared] are recommended.
+
 ## Additional information
 
 This mekes use of the event loop as the waiting queue, without additional lists.

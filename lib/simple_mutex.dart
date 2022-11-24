@@ -38,6 +38,27 @@ class Mutex {
     _exclusive.complete();
   }
 
+  /// Critical section with the exclusive lock.
+  /// 
+  /// ## Usage
+  /// ```dart
+  /// await mutex.critical(() /* async */ {
+  ///   // critical section.
+  /// });
+  /// ```
+  Future<void> critical(FutureOr<void> Function() func) async {
+    await lock();
+    try {
+      if (func is Future<void> Function()) {
+        await func();
+      } else {
+        func();
+      }
+    } finally {
+      unlock();
+    }
+  }
+
   /// Aquires a shared lock.
   ///
   /// This is mutually exclusive with other users aquiring the exclusive lock.
@@ -63,6 +84,27 @@ class Mutex {
     _sharedCount--;
     if (_sharedCount == 0) {
       _shared.complete();
+    }
+  }
+
+  /// Critical section with a shared lock.
+  /// 
+  /// ## Usage
+  /// ```dart
+  /// await mutex.criticalShared(() /* async */ {
+  ///   // critical section.
+  /// });
+  /// ```
+  Future<void> criticalShared(FutureOr<void> Function() func) async {
+    await lockShared();
+    try {
+      if (func is Future<void> Function()) {
+        await func();
+      } else {
+        func();
+      }
+    } finally {
+      unlockShared();
     }
   }
 }
