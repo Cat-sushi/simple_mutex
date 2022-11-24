@@ -12,13 +12,18 @@ class Mutex {
 
   /// Aquires the exclusive lock.
   ///
-  /// This is literally mutually exclusive with other users aqurering exclusive/ shared locks.
+  /// This is literally mutually exclusive with other users aqurering
+  /// exclusive/ shared locks.
   ///
-  /// 1. waits for the other existing users having requested for aquiring the exclusive lock at the call time to release it.
-  /// 2. makes the other users wait for aquiring exclusive/ shared locks with some exception. see [unlock].
-  /// 3. waits for all the existing users having aquired shared locks to release them.
+  /// 1. waits for the other existing users having requested for
+  /// aquiring the exclusive lock at the call time to release it.
+  /// 2. makes the other users wait for newly aquiring exclusive/ shared
+  /// locks with some exception. See [unlock].
+  /// 3. waits for all the existing users having aquired shared locks
+  /// to release them.
   ///
-  /// This is useful for a read/ write user of resouces which should not run with other users at the same time.
+  /// This is useful for a read/ write user of resouces which should not
+  /// run with other users at the same time.
   Future<void> lock() async {
     while (!_exclusive.isCompleted) {
       await _exclusive.future;
@@ -32,12 +37,13 @@ class Mutex {
   /// Releases the exclusive lock.
   ///
   /// This will resume the first user having requested for aquiring the exclusive lock,
-  /// or resume some users having requested for aquiring shared locks,
+  /// or will resume some users having requested for aquiring shared locks,
   /// dipending on calling order.
-  /// 
+  ///
   /// Having said that, if the code between [unlock] and next [lock] on the same
   /// [Mutex] object is synchronous, the next [lock] will succeed synchronously,
   /// so don't hesitate [unlock] just fater the critical section.
+  /// It means, this doesn't introduce another unintended asynchronous behaviour.
   void unlock() {
     _exclusive.complete();
   }
@@ -69,7 +75,8 @@ class Mutex {
   ///
   /// But, this can be shared with all the other users aquiring shared locks.
   ///
-  /// This is useful for read-only users of resources running asynchronously at the same time.
+  /// This is useful for read-only users of resources running asynchronously
+  /// at the same time.
   Future<void> lockShared() async {
     while (!_exclusive.isCompleted) {
       await _exclusive.future;
@@ -83,7 +90,8 @@ class Mutex {
   /// Releases a shared lock.
   ///
   /// If the caller is the last user having aquired a shared lock,
-  /// this will resume the first existing user having requested for aquireing the exclusive lock.
+  /// this will resume the first existing user having requested for aquireing
+  /// the exclusive lock.
   void unlockShared() {
     _sharedCount--;
     if (_sharedCount == 0) {
