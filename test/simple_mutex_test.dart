@@ -348,6 +348,22 @@ void main() {
         'Ended shared: 2',
       ]);
     });
+    test('test5', () async {
+      var mutex = Mutex();
+      unawaited(sharedLoop1(mutex));
+      await mySleep(10);
+      unawaited(sharedLoop1(mutex));
+      await mySleep(10);
+      unawaited(sharedLoop1(mutex));
+      await mySleep(10);
+      unawaited(sharedLoop1(mutex));
+      await mySleep(10);
+      unawaited(sharedLoop1(mutex));
+      await mySleep(1000);
+      await mutex.lock();
+      mutex.unlock();
+      expect('a', 'a');
+    });
   });
 }
 
@@ -408,6 +424,14 @@ Future<void> sharedLoop(Mutex mutex, List results) async {
     results.add('Ended shared: $i');
     print('Ended shared: $i');
     mutex.unlockShared();
+  }
+}
+
+Future<void> sharedLoop1(Mutex mutex) async {
+  while (true) {
+    await mutex.criticalShared(() async {
+      await mySleep(50);
+    });
   }
 }
 
