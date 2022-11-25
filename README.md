@@ -2,12 +2,15 @@
 
 This provids a exclusive write lock and shared read-only locks.
 
+Request for exclusive lock can politely interrupt multiple parallel loops acquiring shared locks.
+
 ## Features
 
 - Aquiring the literally mutually exclusive lock, for read/ write user of resources.
 - Releasing the mutually exclusive lock.
 - Aquiring a shared locks, for read-only users.
 - Releasing a shared lock.
+- Criticaal sections.
 
 ## Getting started
 
@@ -27,24 +30,31 @@ Protect asynchronous critical section with mutually exclusive lock.
 
 ```dart
 await mutex.lock();
-// Some mutually exclusive asynchronous critical session.
-// This prevent entering other mutually exclusive/ shared  critical sesssions.
-// This wait for ending otehr mutually exclusive/ shared critical sesssions.
-mutex.unlock();
+try {
+  // Some mutually exclusive asynchronous critical section.
+  // This prevent entering other mutually exclusive/ shared critical sections.
+} finally {
+  mutex.unlock();
+}
 ```
 
 Protect asynchronous critical section with shared lock.
 
 ```dart
 await mutex.lockShared();
-// Some shared asynchronous critical session.
-// This can be run concurrently with other shared critical sessions.
-// This wait for ending mutually exclusive critical sesssions.
-mutex.unlockShared();
+try {
+  // Some shared asynchronous critical section.
+  // This prevent entering other mutually exclusive critical sections.
+  // On the other hand, this can be run in parallel with other shared 
+  // critical sections.
+} finally {
+  mutex.unlockShared();
+}
 ```
 
-To avoid leaking lock in exceptional cases, [Mutex.critical] and [Mutex.criticalShared] are recommended.
+To avoid leaking lock in exceptional cases or missing `await`,
+`critical` and `criticalShared` are recommended.
 
 ## Additional information
 
-This mekes use of the event loop as the waiting queue, without additional chain of `Completer`s.
+This mekes use of the event loop as the waiting queue, without additional chain of `Completer`s

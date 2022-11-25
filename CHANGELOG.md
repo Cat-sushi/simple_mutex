@@ -1,3 +1,5 @@
+# Change Log
+
 ## 1.0.0
 
 - Initial version.
@@ -13,4 +15,10 @@
 ## 1.2.0
 
 - Add a optional behavior to `lock` and `critical`.
-The new behavior yield execution right to existing users having requested exclusive/ shared locks.
+The new behavior yield execution right to existing users having
+requested exclusive/ shared locks.
+
+## 1.2.1
+
+- Rerun the formatter correctly.
+- Update doc comments.
