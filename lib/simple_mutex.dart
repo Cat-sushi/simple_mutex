@@ -24,7 +24,14 @@ class Mutex {
   ///
   /// This is useful for a read/ write user of resouces which should not
   /// run with other users at the same time.
-  Future<void> lock() async {
+  ///
+  /// When the code between [unlock] and [lock] is synchronous,
+  /// and you don't want to get lock in succession, use [lock(true)]
+  /// instead of [lock()] or [lock(false)].
+  Future<void> lock([bool deliver = false]) async {
+    if (deliver) {
+      await _exclusive.future;
+    }
     while (!_exclusive.isCompleted) {
       await _exclusive.future;
     }
@@ -41,23 +48,30 @@ class Mutex {
   /// dipending on calling order.
   ///
   /// Having said that, if the code between [unlock] and next [lock] on the same
-  /// [Mutex] object is synchronous, the next [lock] will succeed synchronously,
-  /// so don't hesitate [unlock] just fater the critical section.
-  /// It means, this doesn't introduce another unintended asynchronous behaviour.
+  /// [Mutex] object is synchronous, the next [lock()] will succeed synchronously.
+  /// It means, ajacent critical sections glued with synchronous code will be
+  /// concatanated to single critical section.
+  /// In other words, this doesn't introduce another unintended asynchronous behaviour,
+  /// so don't hesitate [unlock] just fater each critical section.
+  ///
+  /// If you don't like this behavior, use [lock(true)] instead of [lock()] or [lock(false)].
   void unlock() {
     _exclusive.complete();
   }
 
-  /// Critical section with the exclusive lock.
+  /// Critical section with [lock] and [unlock].
   ///
+  /// When the code between [critical] and another [critical] is synchronous,
+  /// and you don't want to get lock in succession, pass [deliver] `true`.
   /// ## Usage
   /// ```dart
   /// await mutex.critical(() /* async */ {
   ///   // critical section.
   /// });
   /// ```
-  Future<void> critical(FutureOr<void> Function() func) async {
-    await lock();
+  Future<void> critical(FutureOr<void> Function() func,
+      {bool deliver = false}) async {
+    await lock(deliver);
     try {
       if (func is Future<void> Function()) {
         await func();
@@ -99,7 +113,7 @@ class Mutex {
     }
   }
 
-  /// Critical section with a shared lock.
+  /// Critical section with [lockShared] and [unlockShared].
   ///
   /// ## Usage
   /// ```dart

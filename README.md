@@ -47,4 +47,4 @@ To avoid leaking lock in exceptional cases, [Mutex.critical] and [Mutex.critical
 
 ## Additional information
 
-This mekes use of the event loop as the waiting queue, without additional lists.
+This mekes use of the event loop as the waiting queue, without additional chain of `Completer`s.

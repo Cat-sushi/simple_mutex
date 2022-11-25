@@ -9,3 +9,8 @@
 ## 1.1.1
 
 - Refine documents.
+
+## 1.2.0
+
+- Add a optional behavior to `lock` and `critical`.
+The new behavior yield execution right to existing users having requested exclusive/ shared locks.
