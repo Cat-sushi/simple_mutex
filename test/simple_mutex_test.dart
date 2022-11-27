@@ -350,18 +350,68 @@ void main() {
     });
     test('test5', () async {
       var mutex = Mutex();
-      unawaited(sharedLoop1(mutex));
+      unawaited(sharedLoopInf(mutex));
       await mySleep(10);
-      unawaited(sharedLoop1(mutex));
+      unawaited(sharedLoopInf(mutex));
       await mySleep(10);
-      unawaited(sharedLoop1(mutex));
+      unawaited(sharedLoopInf(mutex));
       await mySleep(10);
-      unawaited(sharedLoop1(mutex));
+      unawaited(sharedLoopInf(mutex));
       await mySleep(10);
-      unawaited(sharedLoop1(mutex));
+      unawaited(sharedLoopInf(mutex));
       await mySleep(1000);
       await mutex.lock();
       mutex.unlock();
+      await mySleep(10);
+      await mutex.lock(true);
+      mutex.unlock();
+      await mySleep(10);
+      await mutex.lockShared();
+      mutex.unlockShared();
+      expect('a', 'a');
+    });
+    test('test6', () async {
+      var mutex = Mutex();
+      unawaited(exclusiveLoopInf(mutex, true));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex, true));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex, true));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex, true));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex, true));
+      await mySleep(1000);
+      await mutex.lock();
+      mutex.unlock();
+      await mySleep(10);
+      await mutex.lock(true);
+      mutex.unlock();
+      await mySleep(10);
+      await mutex.lockShared();
+      mutex.unlockShared();
+      expect('a', 'a');
+    });
+    test('test7', () async {
+      var mutex = Mutex();
+      unawaited(exclusiveLoopInf(mutex, false));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex, false));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex, false));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex, false));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex, false));
+      await mySleep(1000);
+      await mutex.lock();
+      mutex.unlock();
+      await mySleep(10);
+      await mutex.lock(true);
+      mutex.unlock();
+      await mySleep(10);
+      await mutex.lockShared();
+      mutex.unlockShared();
       expect('a', 'a');
     });
   });
@@ -427,11 +477,22 @@ Future<void> sharedLoop(Mutex mutex, List results) async {
   }
 }
 
-Future<void> sharedLoop1(Mutex mutex) async {
+Future<void> sharedLoopInf(Mutex mutex) async {
   while (true) {
     await mutex.criticalShared(() async {
       await mySleep(50);
     });
+  }
+}
+
+Future<void> exclusiveLoopInf(Mutex mutex, bool deliver) async {
+  while (true) {
+    await mutex.critical(deliver: deliver, () async {
+      await mySleep(50);
+    });
+    if (!deliver) {
+      await Future<void>(() {});
+    }
   }
 }
 

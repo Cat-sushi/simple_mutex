@@ -22,3 +22,8 @@ requested exclusive/ shared locks.
 
 - Rerun the formatter correctly.
 - Update doc comments.
+
+## 1.3.0
+
+- Add return to `critical` and `criticalShared`.
+- Add more tests.

@@ -65,18 +65,39 @@ class Mutex {
   /// and you don't want to get lock in succession, pass [deliver] `true`.
   /// ## Usage
   /// ```dart
-  /// await mutex.critical(() /* async */ {
-  ///   // critical section.
+  /// var ret = await mutex.critical(someSyncCriticalFunc1);
+  /// ```
+  /// ```dart
+  /// var ret = await mutex.critical(someAsyncCriticalFunc1);
+  /// ```
+  /// ```dart
+  /// var ret = await mutex.critical(() => someSyncCriticalFunc2(arg1, arg2));
+  /// ```
+  /// ```dart
+  /// var ret = await mutex.critical(() => someAsyncCriticalFunc2(arg1, arg2));
+  /// ```
+  /// ```dart
+  /// late RetType ret1;
+  /// var ret2 = await mutex.critical(() {
+  ///   ret1 = someSyncCriticalFunc3();
+  ///   return someSyncCriticalFunc4();
   /// });
   /// ```
-  Future<void> critical(FutureOr<void> Function() func,
+  /// ```dart
+  /// late RetType ret1;
+  /// var ret2 = await mutex.critical(deliver: true, () async {
+  ///   ret1 = await someAsyncCriticalFunc3();
+  ///   return await someAsyncCriticalFunc4();
+  /// });
+  /// ```
+  Future<T> critical<T>(FutureOr<T> Function() func,
       {bool deliver = false}) async {
     await lock(deliver);
     try {
-      if (func is Future<void> Function()) {
-        await func();
+      if (func is Future<T> Function()) {
+        return await func();
       } else {
-        func();
+        return func();
       }
     } finally {
       unlock();
@@ -117,17 +138,38 @@ class Mutex {
   ///
   /// ## Usage
   /// ```dart
-  /// await mutex.criticalShared(() /* async */ {
-  ///   // critical section.
+  /// var ret = await mutex.criticalShared(someSyncCriticalFunc1);
+  /// ```
+  /// ```dart
+  /// var ret = await mutex.criticalShared(someAsyncCriticalFunc1);
+  /// ```
+  /// ```dart
+  /// var ret = await mutex.criticalShared(() => someSyncCriticalFunc2(arg1, arg2));
+  /// ```
+  /// ```dart
+  /// var ret = await mutex.criticalShared(() => someAsyncCriticalFunc2(arg1, arg2));
+  /// ```
+  /// ```dart
+  /// late RetType ret1;
+  /// var ret2 = await mutex.criticalShared(() {
+  ///   ret1 = someSyncCriticalFunc3();
+  ///   return someSyncCriticalFunc4();
   /// });
   /// ```
-  Future<void> criticalShared(FutureOr<void> Function() func) async {
+  /// ```dart
+  /// late RetType ret1;
+  /// var ret2 = await mutex.criticalShared(() async {
+  ///   ret1 = await someAsyncCriticalFunc3();
+  ///   return await someAsyncCriticalFunc4();
+  /// });
+  /// ```
+  Future<T> criticalShared<T>(FutureOr<T> Function() func) async {
     await lockShared();
     try {
-      if (func is Future<void> Function()) {
-        await func();
+      if (func is Future<T> Function()) {
+        return await func();
       } else {
-        func();
+        return func();
       }
     } finally {
       unlockShared();
