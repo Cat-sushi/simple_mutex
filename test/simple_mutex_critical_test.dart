@@ -32,7 +32,7 @@ void main() {
         results.add(2);
       });
       await retFuture;
-      expect(results, [1,2]);
+      expect(results, [1, 2]);
     });
   });
 }
