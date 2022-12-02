@@ -1,16 +1,19 @@
 # Change Log
 
-## 1.0.0
+## 1.3.1
 
-- Initial version.
+- Add example.
+- Add more tests.
 
-## 1.1.0
+## 1.3.0
 
-- Add critical section feature.
+- Add return to `critical` and `criticalShared`.
+- Add more tests.
 
-## 1.1.1
+## 1.2.1
 
-- Refine documents.
+- Rerun the formatter correctly.
+- Update doc comments.
 
 ## 1.2.0
 
@@ -18,17 +21,14 @@
 The new behavior yield execution right to existing users having
 requested exclusive/ shared locks.
 
-## 1.2.1
+## 1.1.1
 
-- Rerun the formatter correctly.
-- Update doc comments.
+- Refine documents.
 
-## 1.3.0
+## 1.1.0
 
-- Add return to `critical` and `criticalShared`.
-- Add more tests.
+- Add critical section feature.
 
-## 1.3.1
+## 1.0.0
 
-- Add example.
-- Add more tests.
+- Initial version.
