@@ -6,11 +6,10 @@ Request for exclusive lock can politely interrupt multiple parallel loops acquir
 
 ## Features
 
-- Aquiring the literally mutually exclusive lock, for read/ write user of resources.
-- Releasing the mutually exclusive lock.
-- Aquiring a shared locks, for read-only users.
-- Releasing a shared lock.
-- Criticaal sections.
+- Literally mutually exclusive lock, for read/ write user of resources.
+- Shared locks, for read-only users.
+- Eclusive critical section helper with retrun value.
+- Shared critical section helper with return value.
 
 ## Getting started
 
@@ -57,4 +56,5 @@ To avoid leaking lock in exceptional cases or missing `await`,
 
 ## Additional information
 
-This mekes use of the event loop as the waiting queue, without additional chain of `Completer`s
+This mekes use of the event queue as the waiting queue,
+without additional chain of `Completer`s.

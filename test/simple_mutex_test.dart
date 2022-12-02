@@ -491,7 +491,10 @@ Future<void> exclusiveLoopInf(Mutex mutex, bool deliver) async {
       await mySleep(50);
     });
     if (!deliver) {
-      await Future<void>(() {});
+      await null;
+      // await Future.value(null);
+      // await Future<void>.sync(() => null);
+      // await Future<void>(() {});
     }
   }
 }

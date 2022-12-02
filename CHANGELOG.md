@@ -27,3 +27,8 @@ requested exclusive/ shared locks.
 
 - Add return to `critical` and `criticalShared`.
 - Add more tests.
+
+## 1.3.1
+
+- Add example.
+- Add more tests.
