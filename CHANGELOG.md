@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.3.2
+
+- Fix bug of example.
+- Recomend `unawaited_futures` lint in README.md.
+
 ## 1.3.1
 
 - Add example.

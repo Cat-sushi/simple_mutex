@@ -4,11 +4,11 @@ import 'dart:math';
 
 import 'package:simple_mutex/simple_mutex.dart';
 
+final mutex = Mutex();
+final rand = Random();
 final t = 1000;
 var a = t;
 var b = 0;
-final rand = Random();
-final mutex = Mutex();
 
 Future<void> mySleep(int ms) => Future.delayed(Duration(milliseconds: ms));
 
@@ -30,14 +30,14 @@ Future<void> move() async {
 
 Future<void> observe() async {
   while (a > 0) {
-    mutex.criticalShared(() {
+    await mutex.criticalShared(() async {
       if (a + b == t) {
         stdout.write('.');
       } else {
-        print('\nerror: $a + $b != $t');
+        print('\nerror: $a + $b = ${a + b} != $t');
       }
+      await mySleep(rand.nextInt(10));
     });
-    await mySleep(rand.nextInt(10));
   }
 }
 

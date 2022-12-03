@@ -51,8 +51,11 @@ try {
 }
 ```
 
-To avoid leaking lock in exceptional cases or missing `await`,
-`critical` and `criticalShared` are recommended.
+To avoid leaking lock in exceptional cases, `critical` and `criticalShared`
+are recommended.
+
+Lint `unawaited_futures` is also recommended, because if you miss `await`
+for `critical` or `criticalShared`, memory will be exhausted.
 
 ## Additional information
 
