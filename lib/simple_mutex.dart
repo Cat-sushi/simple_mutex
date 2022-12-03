@@ -104,6 +104,8 @@ class Mutex {
     }
   }
 
+  bool get isLocked => !_exclusive.isCompleted;
+
   /// Aquires a shared lock.
   ///
   /// This is mutually exclusive with other users aquiring the exclusive lock.
@@ -175,4 +177,6 @@ class Mutex {
       unlockShared();
     }
   }
+
+  int get sharedCount => _sharedCount;
 }

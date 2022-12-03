@@ -14,7 +14,7 @@ Future<void> mySleep(int ms) => Future.delayed(Duration(milliseconds: ms));
 
 Future<void> move() async {
   while (a > 0) {
-    await mutex.critical(() async {
+    await mutex.critical(deliver: true, () async {
       var a2 = a;
       var r = min(rand.nextInt(10) + 1, a2);
       await mySleep(rand.nextInt(10));
@@ -23,17 +23,16 @@ Future<void> move() async {
       var b2 = b;
       await mySleep(rand.nextInt(10));
       b = b2 + r;
+      await mySleep(rand.nextInt(10));
     });
-    await mySleep(rand.nextInt(10));
   }
 }
 
 Future<void> observe() async {
   while (a > 0) {
     await mutex.criticalShared(() async {
-      if (a + b == t) {
-        stdout.write('.');
-      } else {
+      stdout.write('${mutex.isLocked ? "l" : "u"}${mutex.sharedCount} ');
+      if (a + b != t) {
         print('\nerror: $a + $b = ${a + b} != $t');
       }
       await mySleep(rand.nextInt(10));

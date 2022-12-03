@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.4.0
+
+- Add propeties `isLocked` and `sharedCount` for test.
+
 ## 1.3.2
 
 - Fix bug of example.
