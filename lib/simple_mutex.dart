@@ -105,6 +105,8 @@ class Mutex {
   }
 
   /// For test only.
+  /// 
+  /// Locked or awaited to be locked.
   bool get isLocked => !_exclusive.isCompleted;
 
   /// Aquires a shared lock.
