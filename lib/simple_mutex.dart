@@ -104,6 +104,7 @@ class Mutex {
     }
   }
 
+  /// For test only.
   bool get isLocked => !_exclusive.isCompleted;
 
   /// Aquires a shared lock.
@@ -178,5 +179,6 @@ class Mutex {
     }
   }
 
+  /// For test only.
   int get sharedCount => _sharedCount;
 }
