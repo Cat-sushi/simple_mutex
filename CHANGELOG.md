@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.4.2
+
+- Relax requierment of the dart SDK.
+
 ## 1.4.1
 
 - Update the example.
