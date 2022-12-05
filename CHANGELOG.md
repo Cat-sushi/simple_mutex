@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.4.1
+
+- Update the example.
+
 ## 1.4.0
 
 - Add propeties `isLocked` and `sharedCount` for test.
@@ -12,12 +16,10 @@
 ## 1.3.1
 
 - Add example.
-- Add more tests.
 
 ## 1.3.0
 
 - Add return to `critical` and `criticalShared`.
-- Add more tests.
 
 ## 1.2.1
 

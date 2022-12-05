@@ -1,6 +1,6 @@
 name: simple_mutex
-description: Simple Mutex providing a exclusive write lock and shared read-only locks.
-version: 1.4.0
+description: Simple but best Mutex providing a exclusive write lock and shared read-only locks.
+version: 1.4.1
 homepage: https://github.com/Cat-sushi/simple_mutex
 
 environment:

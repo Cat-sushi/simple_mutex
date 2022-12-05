@@ -12,7 +12,7 @@ var b = 0;
 
 Future<void> mySleep(int ms) => Future.delayed(Duration(milliseconds: ms));
 
-Future<void> move() async {
+Future<void> move(int i) async {
   while (a > 0) {
     await mutex.critical(deliver: true, () async {
       var a2 = a;
@@ -24,14 +24,15 @@ Future<void> move() async {
       await mySleep(rand.nextInt(10));
       b = b2 + r;
       await mySleep(rand.nextInt(10));
+      stdout.write('M$i:$r ');
     });
   }
 }
 
-Future<void> observe() async {
+Future<void> observe(int i) async {
   while (a > 0) {
     await mutex.criticalShared(() async {
-      stdout.write('${mutex.isLocked ? "l" : "u"}${mutex.sharedCount} ');
+      stdout.write('O$i:${mutex.isLocked ? "l" : "u"}${mutex.sharedCount} ');
       if (a + b != t) {
         print('\nerror: $a + $b = ${a + b} != $t');
       }
@@ -44,8 +45,11 @@ Future<void> main() async {
   print('$a + $b = ${a + b}');
   var futures = <Future<void>>[];
   for (var i = 0; i < 5; i++) {
-    futures.add(move());
-    futures.add(observe());
+    futures.add(observe(i));
+  }
+  await null;
+  for (var i = 0; i < 5; i++) {
+    futures.add(move(i));
   }
   await Future.wait(futures);
   print('\n$a + $b = ${a + b}');

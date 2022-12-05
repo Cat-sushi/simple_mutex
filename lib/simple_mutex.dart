@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-/// Simple Mutex providing a exclusive write lock and shared read-only locks.
+/// Simple but best Mutex providing a exclusive write lock and shared read-only locks.
 class Mutex {
   var _exclusive = Completer<void>()..complete();
   var _shared = Completer<void>()..complete();
