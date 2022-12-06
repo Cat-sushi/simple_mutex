@@ -26,18 +26,33 @@ class Mutex {
   /// run with other users at the same time.
   ///
   /// When the code between [unlock] and [lock] is synchronous,
-  /// and you don't want to get lock in succession, use [lock(true)]
-  /// instead of [lock()] or [lock(false)].
-  Future<void> lock([bool deliver = false]) async {
-    if (deliver) {
-      await _exclusive.future;
+  /// and you don't want to get lock in succession, use [lock(deliver: true)].
+  ///
+  /// If [timeLimit] is not '['null', this might throw [TimeoutException]
+  ///  after [timeLimit] * 2, at max.
+  /// 1 [timeLimit] for awaiting exclusive lock,
+  /// and 1 [timeLimit] for awaiting shared locks.
+  Future<void> lock({bool deliver = false, Duration? timeLimit}) async {
+    if (deliver && _exclusive.isCompleted) {
+      await null;
     }
     while (!_exclusive.isCompleted) {
-      await _exclusive.future;
+      if (timeLimit == null) {
+        await _exclusive.future;
+      } else {
+        await _exclusive.future.timeout(timeLimit);
+      }
     }
     _exclusive = Completer<void>();
     while (!_shared.isCompleted) {
-      await _shared.future;
+      if (timeLimit == null) {
+        await _shared.future;
+        return;
+      }
+      await _shared.future.timeout(timeLimit, onTimeout: () {
+        _exclusive.complete();
+        return Future.error(TimeoutException(null));
+      });
     }
   }
 
@@ -54,7 +69,7 @@ class Mutex {
   /// In other words, this doesn't introduce another unintended asynchronous behaviour,
   /// so don't hesitate [unlock] just fater each critical section.
   ///
-  /// If you don't like this behavior, use [lock(true)] instead of [lock()] or [lock(false)].
+  /// If you don't like this behavior, use [lock(deliver: true)]].
   void unlock() {
     _exclusive.complete();
   }
@@ -63,6 +78,9 @@ class Mutex {
   ///
   /// When the code between [critical] and another [critical] is synchronous,
   /// and you don't want to get lock in succession, pass [deliver] `true`.
+  ///
+  /// If [timeLimit] is not 'null', this might throw [TimeoutException]
+  /// when [lock()] is timed out. See [lock].
   /// ## Usage
   /// ```dart
   /// var ret = await mutex.critical(someSyncCriticalFunc1);
@@ -91,8 +109,8 @@ class Mutex {
   /// });
   /// ```
   Future<T> critical<T>(FutureOr<T> Function() func,
-      {bool deliver = false}) async {
-    await lock(deliver);
+      {bool deliver = false, Duration? timeLimit}) async {
+    await lock(deliver: deliver, timeLimit: timeLimit);
     try {
       if (func is Future<T> Function()) {
         return await func();
@@ -117,9 +135,16 @@ class Mutex {
   ///
   /// This is useful for read-only users of resources running asynchronously
   /// at the same time.
-  Future<void> lockShared() async {
+  ///
+  /// If [timeLimit] is not 'null']', this might throw [TimeoutException]
+  /// after [timeLimit].
+  Future<void> lockShared({Duration? timeLimit}) async {
     while (!_exclusive.isCompleted) {
-      await _exclusive.future;
+      if (timeLimit == null) {
+        await _exclusive.future;
+      } else {
+        await _exclusive.future.timeout(timeLimit);
+      }
     }
     if (_sharedCount == 0) {
       _shared = Completer<void>();
@@ -140,6 +165,9 @@ class Mutex {
   }
 
   /// Critical section with [lockShared] and [unlockShared].
+  ///
+  /// If [timeLimit] is not 'null', this might throw [TimeoutException]
+  /// when [lockShared()] is timed out.
   ///
   /// ## Usage
   /// ```dart
@@ -168,8 +196,9 @@ class Mutex {
   ///   return await someAsyncCriticalFunc4();
   /// });
   /// ```
-  Future<T> criticalShared<T>(FutureOr<T> Function() func) async {
-    await lockShared();
+  Future<T> criticalShared<T>(FutureOr<T> Function() func,
+      {Duration? timeLimit}) async {
+    await lockShared(timeLimit: timeLimit);
     try {
       if (func is Future<T> Function()) {
         return await func();

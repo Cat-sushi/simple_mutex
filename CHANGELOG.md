@@ -1,8 +1,9 @@
 # Change Log
 
-## 1.4.2
+## 1.5.0
 
-- Relax requierment of the dart SDK.
+- Add timeLimit optional parameter.
+- Relax the requierment of the dart SDK.
 
 ## 1.4.1
 

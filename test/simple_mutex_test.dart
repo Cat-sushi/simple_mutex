@@ -363,7 +363,7 @@ void main() {
       await mutex.lock();
       mutex.unlock();
       await mySleep(10);
-      await mutex.lock(true);
+      await mutex.lock(deliver: true);
       mutex.unlock();
       await mySleep(10);
       await mutex.lockShared();
@@ -385,7 +385,7 @@ void main() {
       await mutex.lock();
       mutex.unlock();
       await mySleep(10);
-      await mutex.lock(true);
+      await mutex.lock(deliver: true);
       mutex.unlock();
       await mySleep(10);
       await mutex.lockShared();
@@ -407,7 +407,7 @@ void main() {
       await mutex.lock();
       mutex.unlock();
       await mySleep(10);
-      await mutex.lock(true);
+      await mutex.lock(deliver: true);
       mutex.unlock();
       await mySleep(10);
       await mutex.lockShared();
@@ -431,7 +431,7 @@ Future<void> exclusiveLoop1(Mutex mutex, List results) async {
 
 Future<void> exclusiveLoop2(Mutex mutex, List results) async {
   for (var i = 0; i < 3; i++) {
-    await mutex.lock(true);
+    await mutex.lock(deliver: true);
     results.add('Start exclusive: $i');
     print('Start exclusive: $i');
     await mySleep(200);
