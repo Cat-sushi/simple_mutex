@@ -55,9 +55,4 @@ To avoid leaking lock in exceptional cases, `critical` and `criticalShared`
 are recommended.
 
 Lint `unawaited_futures` is also recommended, because if you miss `await`
-for `critical` or `criticalShared`, memory will be exhausted.
-
-## Additional information
-
-This mekes use of the event queue as the waiting queue,
-without additional chain of `Completer`s.
+for `critical` or `criticalShared`, memory would be exhausted.

@@ -1,8 +1,21 @@
 # Change Log
 
+## 2.0.0
+
+- Breaqking chage: Delete the `deliver` options.</br>
+Because `await` is not promised to yield control to other asynchronous code,
+the behavior of `deliver = false` is not promised, as well. So, it is deleted
+and handmade waiting queue is added as a substitute of the microtask queue.</br>
+See dart-lang/language#2689.
+
+## 1.5.1
+
+- Fix typos in documents.
+
 ## 1.5.0
 
-- Add timeLimit optional parameter.
+- Breaking change: make the `deliver` option from positional to named.
+- Add `timeLimit` optional parameters.
 - Relax the requierment of the dart SDK.
 
 ## 1.4.1

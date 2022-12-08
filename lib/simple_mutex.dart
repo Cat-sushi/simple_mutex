@@ -6,9 +6,10 @@ import 'dart:async';
 
 /// Simple but the best Mutex providing a exclusive write lock and shared read-only locks.
 class Mutex {
-  var _exclusive = Completer<void>()..complete();
+  final _waitingQueue = <Completer<void>>[];
+  var _isLocked = false;
   var _shared = Completer<void>()..complete();
-  int _sharedCount = 0;
+  var _sharedCount = 0;
 
   /// Aquires the exclusive lock.
   ///
@@ -17,41 +18,41 @@ class Mutex {
   ///
   /// 1. waits for the other existing users having requested for
   /// aquiring the exclusive lock at the call time to release it.
-  /// 2. makes the other users wait for newly aquiring exclusive/ shared
-  /// locks with some exception. See [unlock].
+  /// 2. makes the other users wait for newly aquiring exclusive/ shared locks.
   /// 3. waits for all the existing users having aquired shared locks
   /// to release them.
   ///
   /// This is useful for a read/ write user of resouces which should not
   /// run with other users at the same time.
   ///
-  /// When the code between [unlock] and [lock] is synchronous,
-  /// and you don't want to get lock in succession, use [lock(deliver: true)].
-  ///
-  /// If [timeLimit] is not '['null', this might throw [TimeoutException]
+  /// If [timeLimit] is not `null` this might throw [TimeoutException]
   ///  after [timeLimit] * 2, at max.
-  /// 1 [timeLimit] for awaiting exclusive lock,
-  /// and 1 [timeLimit] for awaiting shared locks.
-  Future<void> lock({bool deliver = false, Duration? timeLimit}) async {
-    if (deliver && _exclusive.isCompleted) {
-      await null;
-    }
-    while (!_exclusive.isCompleted) {
+  /// 1 [timeLimit] for waiting for the exclusive lock released,
+  /// and 1 [timeLimit] for waiting for shared locks released.
+  Future<void> lock({Duration? timeLimit}) async {
+    if (_isLocked || _waitingQueue.isNotEmpty) {
+      var myCompleter = Completer<void>.sync();
+      _waitingQueue.add(myCompleter);
       if (timeLimit == null) {
-        await _exclusive.future;
+        await myCompleter.future;
       } else {
-        await _exclusive.future.timeout(timeLimit);
+        await myCompleter.future.timeout(timeLimit, onTimeout: () {
+          _waitingQueue.remove(myCompleter);
+          return Future.error(TimeoutException('Timed out in wating queue.'));
+        });
       }
+      _waitingQueue.removeAt(0);
     }
-    _exclusive = Completer<void>();
-    while (!_shared.isCompleted) {
+    _isLocked = true;
+    if (_sharedCount > 0) {
       if (timeLimit == null) {
         await _shared.future;
         return;
       }
       await _shared.future.timeout(timeLimit, onTimeout: () {
-        _exclusive.complete();
-        return Future.error(TimeoutException(null));
+        _isLocked = false;
+        return Future.error(TimeoutException(
+            'Timed out while wating for shared locks released.'));
       });
     }
   }
@@ -61,25 +62,16 @@ class Mutex {
   /// This will resume the first user having requested for aquiring the exclusive lock,
   /// or will resume some users having requested for aquiring shared locks,
   /// dipending on calling order.
-  ///
-  /// Having said that, if the code between [unlock] and next [lock] on the same
-  /// [Mutex] object is synchronous, the next [lock()] will succeed synchronously.
-  /// It means, ajacent critical sections glued with synchronous code will be
-  /// concatanated to single critical section.
-  /// In other words, this doesn't introduce another unintended asynchronous behaviour,
-  /// so don't hesitate [unlock] just fater each critical section.
-  ///
-  /// If you don't like this behavior, use [lock(deliver: true)]].
   void unlock() {
-    _exclusive.complete();
+    _isLocked = false;
+    if (_waitingQueue.isNotEmpty) {
+      _waitingQueue[0].complete();
+    }
   }
 
   /// Critical section with [lock] and [unlock].
   ///
-  /// When the code between [critical] and another [critical] is synchronous,
-  /// and you don't want to get lock in succession, pass [deliver] `true`.
-  ///
-  /// If [timeLimit] is not 'null', this might throw [TimeoutException]
+  /// If [timeLimit] is not `null`, this might throw [TimeoutException]
   /// when [lock()] is timed out. See [lock].
   /// ## Usage
   /// ```dart
@@ -103,14 +95,14 @@ class Mutex {
   /// ```
   /// ```dart
   /// late RetType ret1;
-  /// var ret2 = await mutex.critical(deliver: true, () async {
+  /// var ret2 = await mutex.critical(() async {
   ///   ret1 = await someAsyncCriticalFunc3();
   ///   return await someAsyncCriticalFunc4();
   /// });
   /// ```
   Future<T> critical<T>(FutureOr<T> Function() func,
-      {bool deliver = false, Duration? timeLimit}) async {
-    await lock(deliver: deliver, timeLimit: timeLimit);
+      {Duration? timeLimit}) async {
+    await lock(timeLimit: timeLimit);
     try {
       if (func is Future<T> Function()) {
         return await func();
@@ -124,8 +116,8 @@ class Mutex {
 
   /// For test only.
   ///
-  /// Locked or awaited to be locked.
-  bool get isLocked => !_exclusive.isCompleted;
+  /// Exclusively Locked, including wating for shared locks unlocked.
+  bool get isLocked => _isLocked;
 
   /// Aquires a shared lock.
   ///
@@ -136,20 +128,29 @@ class Mutex {
   /// This is useful for read-only users of resources running asynchronously
   /// at the same time.
   ///
-  /// If [timeLimit] is not 'null']', this might throw [TimeoutException]
+  /// If [timeLimit] is not `null`, this might throw [TimeoutException]
   /// after [timeLimit].
   Future<void> lockShared({Duration? timeLimit}) async {
-    while (!_exclusive.isCompleted) {
+    if (_isLocked || _waitingQueue.isNotEmpty) {
+      var myCompleter = Completer<void>.sync();
+      _waitingQueue.add(myCompleter);
       if (timeLimit == null) {
-        await _exclusive.future;
+        await myCompleter.future;
       } else {
-        await _exclusive.future.timeout(timeLimit);
+        await myCompleter.future.timeout(timeLimit, onTimeout: () {
+          _waitingQueue.remove(myCompleter);
+          return Future.error(TimeoutException('Timed out in wating queue.'));
+        });
       }
+      _waitingQueue.removeAt(0);
     }
     if (_sharedCount == 0) {
       _shared = Completer<void>();
     }
     _sharedCount++;
+    if (_waitingQueue.isNotEmpty) {
+      _waitingQueue[0].complete();
+    }
   }
 
   /// Releases a shared lock.
@@ -161,12 +162,15 @@ class Mutex {
     _sharedCount--;
     if (_sharedCount == 0) {
       _shared.complete();
+      if (_waitingQueue.isNotEmpty && !_isLocked) {
+        _waitingQueue[0].complete();
+      }
     }
   }
 
   /// Critical section with [lockShared] and [unlockShared].
   ///
-  /// If [timeLimit] is not 'null', this might throw [TimeoutException]
+  /// If [timeLimit] is not `null`, this might throw [TimeoutException]
   /// when [lockShared()] is timed out.
   ///
   /// ## Usage

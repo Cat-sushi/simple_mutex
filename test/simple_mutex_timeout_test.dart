@@ -34,12 +34,14 @@ void main() {
       var ret = '';
       unawaited(mutex.lock());
       await null;
-      print('isLocked: ${mutex.isLocked}');
+      print('isLocked1: ${mutex.isLocked}');
       unawaited(mutex.lockShared());
       await null;
       Future.delayed(Duration(milliseconds: 100), () async {
+        print('isLocked2: ${mutex.isLocked}');
         mutex.unlock();
         print('unlock');
+        print('isLocked3: ${mutex.isLocked}');
         await null;
         print('shardCount1: ${mutex.sharedCount}');
       });
@@ -54,6 +56,7 @@ void main() {
         print('shardCount2: ${mutex.sharedCount}');
       } catch (e) {
         ret = 'Timed out';
+        print('Timed out');
       }
       expect([mutex.isLocked, ret], [false, 'Timed out']);
     });
@@ -77,12 +80,14 @@ void main() {
       var ret = '';
       unawaited(mutex.lock());
       await null;
-      print('isLocked: ${mutex.isLocked}');
+      print('isLocked1: ${mutex.isLocked}');
       unawaited(mutex.lockShared());
       await null;
       Future.delayed(Duration(milliseconds: 100), () async {
+        print('isLocked2: ${mutex.isLocked}');
         mutex.unlock();
         print('unlock');
+        print('isLocked3: ${mutex.isLocked}');
         await null;
         print('shardCount1: ${mutex.sharedCount}');
       });
@@ -98,6 +103,7 @@ void main() {
         });
       } catch (e) {
         ret = 'Timed out';
+        print('Timed out');
       }
       expect([mutex.isLocked, ret], [false, 'Timed out']);
     });
