@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.5.2
+
+- Suspend microtask more promised way.
+
+## 1.5.1
+
+- Fix typos in documents.
+
 ## 1.5.0
 
 - Add timeLimit optional parameter.

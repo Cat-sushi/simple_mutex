@@ -28,13 +28,13 @@ class Mutex {
   /// When the code between [unlock] and [lock] is synchronous,
   /// and you don't want to get lock in succession, use [lock(deliver: true)].
   ///
-  /// If [timeLimit] is not '['null', this might throw [TimeoutException]
+  /// If [timeLimit] is not `null`, this might throw [TimeoutException]
   ///  after [timeLimit] * 2, at max.
   /// 1 [timeLimit] for awaiting exclusive lock,
   /// and 1 [timeLimit] for awaiting shared locks.
   Future<void> lock({bool deliver = false, Duration? timeLimit}) async {
     if (deliver && _exclusive.isCompleted) {
-      await null;
+      await Future.microtask(() {});
     }
     while (!_exclusive.isCompleted) {
       if (timeLimit == null) {
@@ -79,7 +79,7 @@ class Mutex {
   /// When the code between [critical] and another [critical] is synchronous,
   /// and you don't want to get lock in succession, pass [deliver] `true`.
   ///
-  /// If [timeLimit] is not 'null', this might throw [TimeoutException]
+  /// If [timeLimit] is not `null`, this might throw [TimeoutException]
   /// when [lock()] is timed out. See [lock].
   /// ## Usage
   /// ```dart
@@ -136,7 +136,7 @@ class Mutex {
   /// This is useful for read-only users of resources running asynchronously
   /// at the same time.
   ///
-  /// If [timeLimit] is not 'null']', this might throw [TimeoutException]
+  /// If [timeLimit] is not `null`, this might throw [TimeoutException]
   /// after [timeLimit].
   Future<void> lockShared({Duration? timeLimit}) async {
     while (!_exclusive.isCompleted) {
@@ -166,7 +166,7 @@ class Mutex {
 
   /// Critical section with [lockShared] and [unlockShared].
   ///
-  /// If [timeLimit] is not 'null', this might throw [TimeoutException]
+  /// If [timeLimit] is not `null`, this might throw [TimeoutException]
   /// when [lockShared()] is timed out.
   ///
   /// ## Usage
