@@ -24,19 +24,15 @@ void main() {
 
       await mySleep();
 
-      results.add('restarting 1');
+      results.add('restarting 1 -> 2');
       mutex1.unlock();
-      results.add('restarting 2');
       mutex2.unlock();
       mutex.unlock();
 
       results.add(await Future.wait<int>([future1, future2]));
 
       expect(results, [
-        '1 locking',
-        '2 locking',
-        'restarting 1',
-        'restarting 2',
+        'restarting 1 -> 2',
         '1 locked.',
         '1 restarted.',
         '1 unlocked.',
@@ -63,19 +59,15 @@ void main() {
 
       await mySleep();
 
-      results.add('restarting 2');
+      results.add('restarting 2 -> 1');
       mutex2.unlock();
-      results.add('restarting 1');
       mutex1.unlock();
       mutex.unlock();
 
       results.add(await Future.wait<int>([future1, future2]));
 
       expect(results, [
-        '1 locking',
-        '2 locking',
-        'restarting 2',
-        'restarting 1',
+        'restarting 2 -> 1',
         '1 locked.',
         '1 restarted.',
         '1 unlocked.',
@@ -107,24 +99,17 @@ void main() {
 
       await mySleep();
 
-      results.add('restarting 3');
+      results.add('restarting 3 -> 1 -> 2');
       mutex3.unlock();
-      results.add('restarting 1');
       mutex1.unlock();
-      results.add('restarting 2');
       mutex2.unlock();
 
       results.add(await Future.wait<int>([future1, future2, future3]));
 
       expect(results, [
-        '1 locking shared',
-        '2 locking shared',
-        '3 locking',
         '1 locked shared',
         '2 locked shared',
-        'restarting 3',
-        'restarting 1',
-        'restarting 2',
+        'restarting 3 -> 1 -> 2',
         '1 restarted.',
         '1 unlocked shared',
         '2 restarted.',
@@ -155,24 +140,17 @@ void main() {
 
       await mySleep();
 
-      results.add('restarting 3');
+      results.add('restarting 3 -> 2 -> 1');
       mutex3.unlock();
-      results.add('restarting 2');
       mutex2.unlock();
-      results.add('restarting 1');
       mutex1.unlock();
 
       results.add(await Future.wait<int>([future1, future2, future3]));
 
       expect(results, [
-        '1 locking shared',
-        '2 locking shared',
-        '3 locking',
         '1 locked shared',
         '2 locked shared',
-        'restarting 3',
-        'restarting 2',
-        'restarting 1',
+        'restarting 3 -> 2 -> 1',
         '2 restarted.',
         '2 unlocked shared',
         '1 restarted.',
@@ -208,26 +186,19 @@ void main() {
 
       await mySleep();
 
-      results.add('restarting 3');
+      results.add('restarting 3 -> 2 -> 1');
       mutex3.unlock();
-      results.add('restarting 2');
       mutex2.unlock();
-      results.add('restarting 1');
       mutex1.unlock();
 
       await Future.wait<void>([future1, future2, future3]);
 
       expect(results, [
-        'restarting 3',
-        'restarting 2',
-        'restarting 1',
+        'restarting 3 -> 2 -> 1',
         '2 restarted.',
-        '2 unlocked shared',
         2,
         '1 restarted.',
-        '1 unlocked shared',
         1,
-        '3 locked.',
         '3 restarted.',
         3
       ]);
@@ -270,14 +241,14 @@ void main() {
       expect(results, [
         'Start exclusive: 0',
         'Ended exclusive: 0',
-        'Start exclusive: 1',
-        'Ended exclusive: 1',
-        'Start exclusive: 2',
-        'Ended exclusive: 2',
         'Start shared: 0',
         'Ended shared: 0',
+        'Start exclusive: 1',
+        'Ended exclusive: 1',
         'Start shared: 1',
         'Ended shared: 1',
+        'Start exclusive: 2',
+        'Ended exclusive: 2',
         'Start shared: 2',
         'Ended shared: 2',
       ]);
@@ -306,108 +277,42 @@ void main() {
     });
     test('test3', () async {
       var mutex = Mutex();
-      var results = [];
-      var future1 = exclusiveLoop3(mutex, results);
-      await mySleep(100);
-      var future2 = sharedLoop(mutex, results);
-      await Future.wait([future1, future2]);
-      expect(results, [
-        'Start exclusive: 0',
-        'Ended exclusive: 0',
-        'Start exclusive: 1',
-        'Ended exclusive: 1',
-        'Start exclusive: 2',
-        'Ended exclusive: 2',
-        'Start shared: 0',
-        'Ended shared: 0',
-        'Start shared: 1',
-        'Ended shared: 1',
-        'Start shared: 2',
-        'Ended shared: 2',
-      ]);
+      unawaited(exclusiveLoopInf(mutex));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex));
+      await mySleep(10);
+      unawaited(exclusiveLoopInf(mutex));
+      await mySleep(1000);
+      await mutex.lock();
+      mutex.unlock();
+      await mySleep(10);
+      await mutex.lock();
+      mutex.unlock();
+      await mySleep(10);
+      await mutex.lockShared();
+      mutex.unlockShared();
+      expect('a', 'a');
     });
     test('test4', () async {
       var mutex = Mutex();
-      var results = [];
-      var future1 = exclusiveLoop4(mutex, results);
-      await mySleep(100);
-      var future2 = sharedLoop(mutex, results);
-      await Future.wait([future1, future2]);
-      expect(results, [
-        'Start exclusive: 0',
-        'Ended exclusive: 0',
-        'Start shared: 0',
-        'Ended shared: 0',
-        'Start exclusive: 1',
-        'Ended exclusive: 1',
-        'Start shared: 1',
-        'Ended shared: 1',
-        'Start exclusive: 2',
-        'Ended exclusive: 2',
-        'Start shared: 2',
-        'Ended shared: 2',
-      ]);
-    });
-    test('test5', () async {
-      var mutex = Mutex();
-      unawaited(sharedLoopInf(mutex));
+      unawaited(exclusiveLoopInf(mutex));
       await mySleep(10);
-      unawaited(sharedLoopInf(mutex));
+      unawaited(exclusiveLoopInf(mutex));
       await mySleep(10);
-      unawaited(sharedLoopInf(mutex));
+      unawaited(exclusiveLoopInf(mutex));
       await mySleep(10);
-      unawaited(sharedLoopInf(mutex));
+      unawaited(exclusiveLoopInf(mutex));
       await mySleep(10);
-      unawaited(sharedLoopInf(mutex));
+      unawaited(exclusiveLoopInf(mutex));
       await mySleep(1000);
       await mutex.lock();
       mutex.unlock();
       await mySleep(10);
-      await mutex.lock(deliver: true);
-      mutex.unlock();
-      await mySleep(10);
-      await mutex.lockShared();
-      mutex.unlockShared();
-      expect('a', 'a');
-    });
-    test('test6', () async {
-      var mutex = Mutex();
-      unawaited(exclusiveLoopInf(mutex, true));
-      await mySleep(10);
-      unawaited(exclusiveLoopInf(mutex, true));
-      await mySleep(10);
-      unawaited(exclusiveLoopInf(mutex, true));
-      await mySleep(10);
-      unawaited(exclusiveLoopInf(mutex, true));
-      await mySleep(10);
-      unawaited(exclusiveLoopInf(mutex, true));
-      await mySleep(1000);
       await mutex.lock();
-      mutex.unlock();
-      await mySleep(10);
-      await mutex.lock(deliver: true);
-      mutex.unlock();
-      await mySleep(10);
-      await mutex.lockShared();
-      mutex.unlockShared();
-      expect('a', 'a');
-    });
-    test('test7', () async {
-      var mutex = Mutex();
-      unawaited(exclusiveLoopInf(mutex, false));
-      await mySleep(10);
-      unawaited(exclusiveLoopInf(mutex, false));
-      await mySleep(10);
-      unawaited(exclusiveLoopInf(mutex, false));
-      await mySleep(10);
-      unawaited(exclusiveLoopInf(mutex, false));
-      await mySleep(10);
-      unawaited(exclusiveLoopInf(mutex, false));
-      await mySleep(1000);
-      await mutex.lock();
-      mutex.unlock();
-      await mySleep(10);
-      await mutex.lock(deliver: true);
       mutex.unlock();
       await mySleep(10);
       await mutex.lockShared();
@@ -419,7 +324,7 @@ void main() {
 
 Future<void> exclusiveLoop1(Mutex mutex, List results) async {
   for (var i = 0; i < 3; i++) {
-    await mutex.lock();
+    await mutex.lock(timeLimit: Duration(seconds: 1));
     results.add('Start exclusive: $i');
     print('Start exclusive: $i');
     await mySleep(200);
@@ -431,31 +336,7 @@ Future<void> exclusiveLoop1(Mutex mutex, List results) async {
 
 Future<void> exclusiveLoop2(Mutex mutex, List results) async {
   for (var i = 0; i < 3; i++) {
-    await mutex.lock(deliver: true);
-    results.add('Start exclusive: $i');
-    print('Start exclusive: $i');
-    await mySleep(200);
-    results.add('Ended exclusive: $i');
-    print('Ended exclusive: $i');
-    mutex.unlock();
-  }
-}
-
-Future<void> exclusiveLoop3(Mutex mutex, List results) async {
-  for (var i = 0; i < 3; i++) {
     await mutex.critical(() async {
-      results.add('Start exclusive: $i');
-      print('Start exclusive: $i');
-      await mySleep(200);
-      results.add('Ended exclusive: $i');
-      print('Ended exclusive: $i');
-    });
-  }
-}
-
-Future<void> exclusiveLoop4(Mutex mutex, List results) async {
-  for (var i = 0; i < 3; i++) {
-    await mutex.critical(deliver: true, () async {
       results.add('Start exclusive: $i');
       print('Start exclusive: $i');
       await mySleep(200);
@@ -467,7 +348,7 @@ Future<void> exclusiveLoop4(Mutex mutex, List results) async {
 
 Future<void> sharedLoop(Mutex mutex, List results) async {
   for (var i = 0; i < 3; i++) {
-    await mutex.lockShared();
+    await mutex.lockShared(timeLimit: Duration(seconds: 1));
     results.add('Start shared: $i');
     print('Start shared: $i');
     await mySleep(50);
@@ -485,48 +366,39 @@ Future<void> sharedLoopInf(Mutex mutex) async {
   }
 }
 
-Future<void> exclusiveLoopInf(Mutex mutex, bool deliver) async {
+Future<void> exclusiveLoopInf(Mutex mutex) async {
   while (true) {
-    await mutex.critical(deliver: deliver, () async {
+    await mutex.critical(() async {
       await mySleep(50);
     });
-    if (!deliver) {
-      await null;
-      // await Future.value(null);
-      // await Future<void>.sync(() => null);
-      // await Future<void>(() {});
-    }
   }
 }
 
 Future<int> asyncFuncExclusive(
     int me, Mutex myMutex, Mutex mutex, List results) async {
-  results.add('$me locking');
   await mutex.lock();
   results.add('$me locked.');
   await myMutex.lock();
   results.add('$me restarted.');
   myMutex.unlock();
-  mutex.unlock();
   results.add('$me unlocked.');
+  mutex.unlock();
   return me;
 }
 
 Future<int> asyncFuncShared(
     int me, Mutex myMutex, Mutex mutex, List results) async {
-  results.add('$me locking shared');
   await mutex.lockShared();
   results.add('$me locked shared');
   await myMutex.lock();
   results.add('$me restarted.');
   myMutex.unlock();
-  mutex.unlockShared();
   results.add('$me unlocked shared');
+  mutex.unlockShared();
   return me;
 }
 
 Future<int> asyncFuncExclusive1(int me, Mutex myMutex, List results) async {
-  results.add('$me locked.');
   await myMutex.lock();
   results.add('$me restarted.');
   myMutex.unlock();
@@ -537,7 +409,6 @@ Future<int> asyncFuncShared1(int me, Mutex myMutex, List results) async {
   await myMutex.lock();
   results.add('$me restarted.');
   myMutex.unlock();
-  results.add('$me unlocked shared');
   return me;
 }
 

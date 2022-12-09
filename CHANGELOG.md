@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0
+
+- Breaqking Chage: Delete the `deliver` option that was not a good idea.
+- Introduce handmade waiting queue as a substitute of the microtask queue,
+for time poerformance and precise timeout behavior.
+
 ## 1.5.3
 
 - Add message to `TimeoutException'.
@@ -14,7 +20,8 @@
 
 ## 1.5.0
 
-- Add timeLimit optional parameter.
+- Breaking change: make the `deliver` option from positional to named.
+- Add `timeLimit` optional parameters.
 - Relax the requierment of the dart SDK.
 
 ## 1.4.1

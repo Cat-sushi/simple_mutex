@@ -18,7 +18,7 @@ Future<void> mySleep(int ms) => Future.delayed(Duration(milliseconds: ms));
 
 Future<void> move(int i) async {
   while (a > 0) {
-    await mutex.critical(deliver: true, () async {
+    await mutex.critical(() async {
       var a2 = a;
       var r = min(rand.nextInt(9) + 1, a2);
       await mySleep(rand.nextInt(10));
