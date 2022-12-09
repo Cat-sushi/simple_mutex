@@ -12,10 +12,11 @@ void main() {
       try {
         await mutex.lock(timeLimit: Duration(milliseconds: 100));
         ret = 'Ok';
-      } catch (e) {
-        ret = 'Timed out';
+      } on TimeoutException catch (e) {
+        ret = e.message!;
       }
-      expect(ret, 'Timed out');
+      expect([ret, mutex.isLocked],
+          ['lock: Timed out during awating the exclusive lock released', true]);
     });
     test('lock2', () async {
       var mutex = Mutex();
@@ -24,23 +25,24 @@ void main() {
       try {
         await mutex.lock(timeLimit: Duration(milliseconds: 100));
         ret = 'Ok';
-      } catch (e) {
-        ret = 'Timed out';
+      } on TimeoutException catch (e) {
+        ret = e.message!;
       }
-      expect(ret, 'Timed out');
+      expect([ret, mutex.isLocked, mutex.sharedCount],
+          ['lock: Timed out during awating shared locks released', false, 1]);
     });
     test('lock3', () async {
       var mutex = Mutex();
       var ret = '';
       unawaited(mutex.lock());
-      await null;
+      await Future<void>.microtask(() {});
       print('isLocked: ${mutex.isLocked}');
       unawaited(mutex.lockShared());
-      await null;
+      await Future<void>.microtask(() {});
       Future.delayed(Duration(milliseconds: 100), () async {
         mutex.unlock();
         print('unlock');
-        await null;
+        await Future<void>.microtask(() {});
         print('shardCount1: ${mutex.sharedCount}');
       });
       Future.delayed(Duration(milliseconds: 400), () {
@@ -52,10 +54,11 @@ void main() {
         await mutex.lock(timeLimit: Duration(milliseconds: 200));
         ret = 'Ok';
         print('shardCount2: ${mutex.sharedCount}');
-      } catch (e) {
-        ret = 'Timed out';
+      } on TimeoutException catch (e) {
+        ret = e.message!;
       }
-      expect([mutex.isLocked, ret], [false, 'Timed out']);
+      expect([mutex.isLocked, ret],
+          [false, 'lock: Timed out during awating shared locks released']);
     });
   });
   group('critical', () {
@@ -76,14 +79,14 @@ void main() {
       var mutex = Mutex();
       var ret = '';
       unawaited(mutex.lock());
-      await null;
+      await Future<void>.microtask(() {});
       print('isLocked: ${mutex.isLocked}');
       unawaited(mutex.lockShared());
-      await null;
+      await Future<void>.microtask(() {});
       Future.delayed(Duration(milliseconds: 100), () async {
         mutex.unlock();
         print('unlock');
-        await null;
+        await Future<void>.microtask(() {});
         print('shardCount1: ${mutex.sharedCount}');
       });
       Future.delayed(Duration(milliseconds: 400), () {
@@ -110,10 +113,11 @@ void main() {
       try {
         await mutex.lockShared(timeLimit: Duration(milliseconds: 100));
         ret = 'Ok';
-      } catch (e) {
-        ret = 'Timed out';
+      } on TimeoutException catch (e) {
+        ret = e.message!;
       }
-      expect(ret, 'Timed out');
+      expect(ret,
+          'lockShared: Timed out during awating the exclusive lock released');
     });
     test('shared2', () async {
       var mutex = Mutex();
@@ -122,8 +126,8 @@ void main() {
       try {
         await mutex.lockShared(timeLimit: Duration(milliseconds: 100));
         ret = 'Ok';
-      } catch (e) {
-        ret = 'Timed out';
+      } on TimeoutException catch (e) {
+        ret = e.message!;
       }
       expect(ret, 'Ok');
     });

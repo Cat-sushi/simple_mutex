@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.5.3
+
+- Add message to `TimeoutException'.
+
 ## 1.5.2
 
 - Suspend microtask more promised way.

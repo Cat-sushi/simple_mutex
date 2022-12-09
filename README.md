@@ -2,7 +2,8 @@
 
 This provids a exclusive write lock and shared read-only locks.
 
-Request for exclusive lock can politely interrupt multiple parallel loops acquiring shared locks.
+Request for exclusive lock can gracefully interrupt multiple parallel
+loops acquiring shared locks.
 
 ## Features
 

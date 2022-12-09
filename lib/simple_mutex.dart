@@ -34,13 +34,16 @@ class Mutex {
   /// and 1 [timeLimit] for awaiting shared locks.
   Future<void> lock({bool deliver = false, Duration? timeLimit}) async {
     if (deliver && _exclusive.isCompleted) {
-      await Future.microtask(() {});
+      await Future.microtask(() {}); // microtask schedule me
     }
     while (!_exclusive.isCompleted) {
       if (timeLimit == null) {
         await _exclusive.future;
       } else {
-        await _exclusive.future.timeout(timeLimit);
+        await _exclusive.future.timeout(timeLimit,
+            onTimeout: () => Future.error(TimeoutException(
+                'lock: Timed out during awating the exclusive lock released',
+                timeLimit)));
       }
     }
     _exclusive = Completer<void>();
@@ -51,7 +54,8 @@ class Mutex {
       }
       await _shared.future.timeout(timeLimit, onTimeout: () {
         _exclusive.complete();
-        return Future.error(TimeoutException(null));
+        return Future.error(TimeoutException(
+            'lock: Timed out during awating shared locks released', timeLimit));
       });
     }
   }
@@ -143,7 +147,10 @@ class Mutex {
       if (timeLimit == null) {
         await _exclusive.future;
       } else {
-        await _exclusive.future.timeout(timeLimit);
+        await _exclusive.future.timeout(timeLimit,
+            onTimeout: () => Future.error(TimeoutException(
+                'lockShared: Timed out during awating the exclusive lock released',
+                timeLimit)));
       }
     }
     if (_sharedCount == 0) {
