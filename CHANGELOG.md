@@ -1,6 +1,6 @@
 # Change Log
 
-## 2.0.0
+## 2.0.1
 
 - Breaqking Chage: Delete the `deliver` option that was not a good idea.
 - Introduce handmade waiting queue as a substitute of the microtask queue,

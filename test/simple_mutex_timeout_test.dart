@@ -73,7 +73,7 @@ void main() {
       } catch (e) {
         ret = 'Timed out';
       }
-      expect(ret, 'Timed out');
+      expect([mutex.isLocked, ret], [true, 'Timed out']);
     });
     test('critical2', () async {
       var mutex = Mutex();
@@ -138,7 +138,7 @@ void main() {
       var ret = '';
       await mutex.lock();
       try {
-        await mutex.critical(timeLimit: Duration(milliseconds: 100), () {
+        await mutex.criticalShared(timeLimit: Duration(milliseconds: 100), () {
           ret = 'Ok';
         });
       } catch (e) {
